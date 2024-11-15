@@ -1,4 +1,5 @@
-"""Module for web scraping Porsche's website
+"""
+Module for web scraping Porsche's website
 
 Authors: Lucas SALI--ORLIANGE, Apollinaire TEXIER
 Date: November 2024

@@ -1,11 +1,9 @@
-# Scrapy settings for porsche_scraper project
-#
-# For simplicity, this file contains only settings considered important or
-# commonly used. You can find more settings consulting the documentation:
-#
-#     https://docs.scrapy.org/en/latest/topics/settings.html
-#     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+"""
+Module to define the Settings of the Scraping in a Porsche project
+
+Authors: Lucas SALI--ORLIANGE, Apollinaire TEXIER
+Date: November 2024
+"""
 
 BOT_NAME = "porsche_scraper"
 
@@ -20,7 +18,7 @@ NEWSPIDER_MODULE = "porsche_scraper.spiders"
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -62,9 +60,12 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "porsche_scraper.pipelines.PorscheScraperPipeline": 300,
-#}
+ITEM_PIPELINES = {
+    # Add pipelines processing for items
+    "porsche_scraper.pipelines.TextPipeline": 100,
+    # Add pipeline processing for PostgresSQL
+   "porsche_scraper.pipelines.PostgresPipeline": 1,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

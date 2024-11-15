@@ -1,4 +1,5 @@
-"""Module to define scraping items in the Porsche Project
+"""
+Module to define scraping items in the Porsche Project
 
 Authors: Lucas SALI--ORLIANGE, Apollinaire TEXIER
 Date: November 2024
