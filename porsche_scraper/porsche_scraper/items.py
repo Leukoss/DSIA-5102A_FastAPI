@@ -1,12 +1,19 @@
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/items.html
+"""Module to define scraping items in the Porsche Project
+
+Authors: Lucas SALI--ORLIANGE, Apollinaire TEXIER
+Date: November 2024
+"""
 
 import scrapy
 
 
 class PorscheScraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    porsche_price   = scrapy.Field()
+    porsche_name    = scrapy.Field()
+    acceleration    = scrapy.Field()
+    top_speed       = scrapy.Field()
+    image_url       = scrapy.Field()
+    l_100_min       = scrapy.Field()
+    l_100_max       = scrapy.Field()
+    power_ch        = scrapy.Field()
+    power_kw        = scrapy.Field()
