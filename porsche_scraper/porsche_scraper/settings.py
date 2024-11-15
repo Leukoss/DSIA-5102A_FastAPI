@@ -37,6 +37,3 @@ RETRY_HTTP_CODES = [500, 502, 503, 504, 408]
 
 # Define a logging level to retrieve warnings and errors
 LOG_LEVEL = "INFO"
-
-# PostgreSQL database settings
-POSTGRES_URI = os.getenv("POSTGRES_URI", "postgresql://user:password@localhost/dbname")
