@@ -1,8 +1,7 @@
-"""Module for web scraping Porsche's website and connecting to the MongoDB
-database to store scraped data.
+"""Module for web scraping Porsche's website
 
-Authors: Lucas SALI--ORLIANGE
-Date: January 2024
+Authors: Lucas SALI--ORLIANGE, Apollinaire TEXIER
+Date: November 2024
 """
 import scrapy
 import re
@@ -10,132 +9,180 @@ import re
 from ..items import PorscheScraperItem
 
 
-class PorscheFranceSpider(scrapy.Spider):
+class PorscheSpider(scrapy.Spider):
     """
-    Class Docstring: Spider for web scraping Porsche's website to retrieve
-    various information about available Porsche models.
+    Class Docstring: Spider for web scraping Porsche's website
 
     Attributes:
         name (str): Name of the spider.
         allowed_domains (list): List of allowed domains to crawl.
         start_urls (list): List of starting URLs for the spider.
     """
-    name = 'porsche_france'
+    name = 'porsche_spider'
     allowed_domains = ['www.porsche.com']
     start_urls = ['https://www.porsche.com/france/models/']
+    list_id_model_classic = [
+        's718-models', 's718-cayman-gt4-rs', 's718-spyder-rs', 's911-turbo-50',
+        's911-turbo-models', 's911-gt3-rs', 's911-dakar', 's911-st'
+    ]
 
     def parse(self, response) -> None:
         """
         Parses the first web page to retrieve different types of Porsche models.
         :param response: Link to the site containing Porsche models.
-        """
-        # Retrieve different types of possible models
-        models_dividers = response.css('.m-14-model-series-divider')
 
-        # For each type (Models 718, 718 Cayman GT4 RS, etc.)
+        Retrieve the dividers related to the different types of Porsche models
+        "Modèles 718", "718 Cayman GT4 RS", ..., "Modèles Cayenne Coupé"
+        """
+        # Retrieve all the possible dividers that contain one or more model
+        models_dividers = response.css('.m-14-model-series-divider visible')
+
+        # For loop checking each possible category
         for divider in models_dividers:
+            # Retrieve the url of each model category
             model_type_url = divider.css('a::attr(href)').get()
 
-            # If the link exists, access the page containing related models
+            # Retrieve the id of the model category
+            model_id = divider.css('a::attr(id)').get()
+
+            # If the url can be retrieved, we dive into the url
             if model_type_url:
-                # Open the mentioned page
-                yield response.follow(
-                    model_type_url,
-                    callback=self.parse_informations
-                )
+                # According to the model category, apply a different scraping
+                if model_id in self.list_id_model_classic:
+                    yield response.follow(
+                        model_type_url, callback=self.parse_classic_model
+                    )
+                # When the model is not classic, another set of links is needed
+                else:
+                    continue
 
-    def parse_informations(self, models_response) -> None:
+    def parse_classic_model(self, model_response) -> None:
         """
-        Accesses various information and stores it in the database.
-        :param models_response: Link leading to a Porsche category.
+        Realise the classic parsing to add in the pipeline values for the
+        Porsche items
+        :param model_response: response that contains several vehicles
         """
-        # Retrieve all containers for each model of that type
-        models = models_response.css('.m-364-module-specs-content')
+        # Retrieve all containers for the specific model (contains vehicles)
+        vehicles = model_response.css('.m-364-module-specs-content')
 
-        # For each available model
-        for model in models:
-            # Retrieve all desired information
-            dict_details = self.parse_details(model)
+        # Look all vehicles
+        for vehicle in vehicles:
+            # Retrieve 'power', 'acceleration', 'max_speed'
+            dict_details = self.parse_classic_details(vehicle)
+
+            # Retrieve picture url
+            img_url = self.parse_classic_url_image(vehicle)
+
+            # Retrieve the name of the vehicle
+            vehicle_name = self.parse_classic_name(vehicle)
+
+            # Retrieve the price of the vehicle
+            vehicle_price = self.parse_classic_price(vehicle)
+
+            # Retrieve l/100
+            vehicle_l100 = self.parse_classic_l100(vehicle)
 
             yield PorscheScraperItem(
-                acceleration=dict_details['acceleration'],
-                top_speed=dict_details['top_speed'],
-                image_url=self.parse_url_image(model),
-                porsche_price=self.parse_price(model),
-                porsche_name=self.parse_name(model),
-                l_100_min=self.parse_l100(model),
-                power_ch=dict_details['power'],
+                l_100_min       = vehicle_l100['minimum_consumption'],
+                l_100_max       = vehicle_l100['maximum_consumption'],
+                acceleration    = dict_details['acceleration'],
+                top_speed       = dict_details['top_speed'],
+                power_ch        = dict_details['power'],
+                porsche_price   = vehicle_price,
+                porsche_name    = vehicle_name,
+                image_url       = img_url,
             )
 
     @staticmethod
-    def parse_name(model_response) -> str:
+    def parse_classic_details(vehicle) -> dict:
         """
-        Retrieves the model name from a name with multiple elements.
-        :param model_response: Contains the response containing the name.
-        :return: Model's name as a string.
+        Retrieve the 'power', 'acceleration' (from 0 to 100 km/h), and 'maximum
+        speed' (on track)
+        :param vehicle: container for a vehicle
+        :return: dictionary{'power':...,'acceleration':...,'max_speed':...}
         """
-        # Retrieve the model's name
-        model_name_parts = model_response.css(
-            '.m-364-module-headline--title *::text').getall()
+        # Contains the 'power', 'acceleration', and 'maximum speed'
+        infos = vehicle.css('.m-364-module-specs')
+
+        return {
+            # Each node contains different information
+            'power':
+                infos.css(
+                    '.m-364-module-specs-data:nth-child(1) '
+                    '.m-364-module-specs-data--title::text').get(),
+            'acceleration':
+                infos.css(
+                    '.m-364-module-specs-data:nth-child(2) '
+                    '.m-364-module-specs-data--title::text').get(),
+            'max_speed':
+                infos.css(
+                    '.m-364-module-specs-data:nth-child(3) '
+                    '.m-364-module-specs-data--title::text').get()
+        }
+
+    @staticmethod
+    def parse_classic_url_image(vehicle) -> str:
+        """
+        Retrieve the Porsche image
+        :param vehicle: contains the response's image URL
+        :return: image URL as a string
+        """
+        return vehicle.css(
+            'img.m-364-module-image::attr(data-image-src)').get()
+
+    @staticmethod
+    def parse_classic_name(vehicle) -> str:
+        """
+        Retrieve the model name
+        :param vehicle: contains the response's vehicle name
+        :return: model's name as a string.
+        """
+        # Retrieve all the elements in the vehicle name tag
+        model_name_parts = vehicle.css('.m-364-module-headline--title '
+                                       '*::text').getall()
 
         # Clean and retrieve the complete name
         full_model_name = ' '.join(
-            part.strip() for part in model_name_parts if
-            part.strip())
+            part.strip() for part in model_name_parts if part.strip()
+        )
 
         return full_model_name
 
     @staticmethod
-    def parse_price(model_response) -> str:
+    def parse_classic_price(vehicle) -> str:
         """
-        Retrieves the model's price from a price with multiple elements.
-        :param model_response: Contains the response containing the price.
-        :return: Model's price.
+        Retrieve the price of the vehicle
+        :param vehicle: contains the response containing the price
+        :return: vehicle price
         """
-        price = ''.join(re.findall(r'\d+', (model_response.css(
-            '.m-364-module-headline--copy::text').get())))[:-2]
+        # Extract the price text and extract the numerical part
+        price_text = vehicle.css('.m-364-module-headline--copy::text').get()
+        numeric_parts = re.findall(r'\d+', price_text)
+
+        # Join all numeric parts together and remove the last two characters
+        price_str = ''.join(numeric_parts)
+        price = price_str[:-2]
 
         return price
 
     @staticmethod
-    def parse_l100(model_response) -> str:
+    def parse_classic_l100(vehicle) -> dict:
         """
-        Retrieves the value of liters per 100 km.
-        :param model_response: Contains the response containing l/100.
-        :return: L/100 as a string.
+        Retrieve liters per 100 km
+        :param vehicle: contain the response containing l/100 of the vehicle
+        :return: dictionary with the minimum and maximum range l/100
         """
-        return model_response.css('span.b-eco__value::text').get()
+        # Retrieve the minimum and maximum consumption range
+        l100_str = vehicle.css('span.b-eco__value::text').get()
 
-    @staticmethod
-    def parse_url_image(model_response) -> str:
-        """
-        Retrieves the Porsche image.
-        :param model_response: Contains the response containing the image URL.
-        :return: Image URL as a string.
-        """
-        return model_response.css(
-            'img.m-364-module-image::attr(data-image-src)').get()
+        # Split left and right part
+        parts = l100_str.split('-')
 
-    @staticmethod
-    def parse_details(model_response):
-        """
-        Retrieves power, acceleration, and maximum speed.
-        :param model_response: Contains all three pieces of information.
-        :return: A dictionary with three values.
-        """
-        # Retrieve all information
-        infos = model_response.css(
-            '.m-364-techspecs-center .m-364-module-specs')
+        # Extract both parts
+        minimum_value = parts[0].strip()
+        maximum_value = parts[1].strip()
 
         return {
-            # Retrieve power
-            'power': infos.css('.m-364-module-specs-data--title::text').get(),
-            # Retrieve acceleration
-            'acceleration': infos.css(
-                '.m-364-module-specs-data:nth-child(2) '
-                '.m-364-module-specs-data--title::text').get(),
-            # Retrieve maximum speed
-            'top_speed': infos.css(
-                '.m-364-module-specs-data:nth-child(3) '
-                '.m-364-module-specs-data--title::text').get()
+            'minimum_consumption': minimum_value,
+            'maximum_consumption': maximum_value
         }
