@@ -4,7 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4a1c630b-4086-41a6-838d-287fd614fcad" name="Changes" comment="" />
+    <list default="true" id="4a1c630b-4086-41a6-838d-287fd614fcad" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/python.exe" beforeDir="false" afterPath="$PROJECT_DIR$/.venv/Scripts/python.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/pythonw.exe" beforeDir="false" afterPath="$PROJECT_DIR$/.venv/Scripts/pythonw.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/scrapy.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/tkconch.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/tldextract.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/trial.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/twist.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/twistd.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/wheel-3.9.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/wheel.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/wheel3.9.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/Scripts/wheel3.exe" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -47,7 +60,8 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "E:/Ecole/ESIEE/E5DSIA"
+    "last_opened_file_path": "E:/Ecole/ESIEE/E5DSIA",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="SharedIndexes">
