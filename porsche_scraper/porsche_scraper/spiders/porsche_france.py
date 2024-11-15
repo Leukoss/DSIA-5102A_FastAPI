@@ -83,13 +83,12 @@ class PorscheSpider(scrapy.Spider):
             vehicle_l100 = self.parse_classic_l100(vehicle)
 
             yield PorscheScraperItem(
-                l_100_min       = vehicle_l100['minimum_consumption'],
-                l_100_max       = vehicle_l100['maximum_consumption'],
                 acceleration    = dict_details['acceleration'],
                 top_speed       = dict_details['top_speed'],
                 power_ch        = dict_details['power'],
                 porsche_price   = vehicle_price,
                 porsche_name    = vehicle_name,
+                l_100_min       = vehicle_l100,
                 image_url       = img_url,
             )
 
@@ -106,14 +105,18 @@ class PorscheSpider(scrapy.Spider):
 
         return {
             # Each node contains different information
+
+            # Retrieve both power ch/kw processed in the pipelines
             'power':
                 infos.css(
                     '.m-364-module-specs-data:nth-child(1) '
                     '.m-364-module-specs-data--title::text').get(),
+            # Retrieve 'X.XX s' processed in the pipelines for 'X.XX'
             'acceleration':
                 infos.css(
                     '.m-364-module-specs-data:nth-child(2) '
                     '.m-364-module-specs-data--title::text').get(),
+            # Retrieve 'XXX km/h' processed in the pipelines for 'XXX'
             'max_speed':
                 infos.css(
                     '.m-364-module-specs-data:nth-child(3) '
@@ -157,13 +160,8 @@ class PorscheSpider(scrapy.Spider):
         """
         # Extract the price text and extract the numerical part
         price_text = vehicle.css('.m-364-module-headline--copy::text').get()
-        numeric_parts = re.findall(r'\d+', price_text)
 
-        # Join all numeric parts together and remove the last two characters
-        price_str = ''.join(numeric_parts)
-        price = price_str[:-2]
-
-        return price
+        return price_text
 
     @staticmethod
     def parse_classic_l100(vehicle) -> dict:
@@ -175,14 +173,4 @@ class PorscheSpider(scrapy.Spider):
         # Retrieve the minimum and maximum consumption range
         l100_str = vehicle.css('span.b-eco__value::text').get()
 
-        # Split left and right part
-        parts = l100_str.split('-')
-
-        # Extract both parts
-        minimum_value = parts[0].strip()
-        maximum_value = parts[1].strip()
-
-        return {
-            'minimum_consumption': minimum_value,
-            'maximum_consumption': maximum_value
-        }
+        return l100_str
