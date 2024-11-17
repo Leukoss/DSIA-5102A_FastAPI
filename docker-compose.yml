@@ -44,7 +44,7 @@ services:
     # Define a network appartenance to access PostgresSQL
     networks:
       - app_network
-    # Esnure postgresSQL is working
+    # Ensure postgresSQL is working
     depends_on:
       - postgres_db
 
