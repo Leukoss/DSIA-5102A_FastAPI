@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[requires]
+python_version = "3.11.8"
+
+[packages]
+fastapi = "==0.95.0"
+uvicorn = { extras = ["gunicorn"], version = "==0.21.1" }
+psycopg2 = "==2.9.6"
+sqlalchemy = "==2.0.0"
+python-dotenv = "==1.0.0"
+starlette_exporter = "*"

@@ -1,0 +1,58 @@
+# Define the services
+services:
+  # Create the first service for the postgresSQL
+  postgres_db:
+    # Retrieve the official image of postgres
+    image: postgres:latest
+    # Define a container name
+    container_name: postgres-db
+    # Retrieve some key parts for the connection within .env file
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # Define the ports
+    ports:
+      - "5432:5432"
+    # Store data in a volume
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Provide access to any service within the specified network
+    networks:
+      - app_network
+
+  # FastAPI service
+  fastapi_app:
+    # Retrieve the local image of FastAPI
+    build:
+      context: ./app
+    # Define a container name
+    container_name: fastapi-app
+    # Define a volume
+    volumes:
+      - .:/app
+    # Retrieve some key parts for the connection within .env file
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres_db
+      POSTGRES_PORT: 5432
+    # Expose FastAPI on port 8000
+    ports:
+      - "8000:8000"
+    # Define a network appartenance to access PostgresSQL
+    networks:
+      - app_network
+    # Esnure postgresSQL is working
+    depends_on:
+      - postgres_db
+
+# Define the volumes
+volumes:
+  postgres_data:
+
+# Define a network to allow the communication between services
+networks:
+  app_network:
+    driver: bridge
