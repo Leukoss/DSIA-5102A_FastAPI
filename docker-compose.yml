@@ -1,58 +1,33 @@
-# Define the services
 services:
-  # Create the first service for the postgresSQL
-  postgres_db:
-    # Retrieve the official image of postgres
+  db:
     image: postgres:latest
-    # Define a container name
-    container_name: postgres-db
-    # Retrieve some key parts for the connection within .env file
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    # Define the ports
+    env_file:
+      - .env
     ports:
       - "5432:5432"
-    # Store data in a volume
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    # Provide access to any service within the specified network
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "$POSTGRES_USER" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
-      - app_network
+      - default
 
-  # FastAPI service
-  fastapi_app:
-    # Retrieve the local image of FastAPI
+  app:
     build:
       context: ./app
-    # Define a container name
-    container_name: fastapi-app
-    # Define a volume
-    volumes:
-      - .:/app
-    # Retrieve some key parts for the connection within .env file
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_HOST: postgres_db
-      POSTGRES_PORT: 5432
-    # Expose FastAPI on port 8000
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    # Define a network appartenance to access PostgresSQL
-    networks:
-      - app_network
-    # Ensure postgresSQL is working
+    env_file:
+      - .env
     depends_on:
-      - postgres_db
-
-# Define the volumes
-volumes:
-  postgres_data:
+      db:
+        condition: service_healthy
+    networks:
+      - default
 
 # Define a network to allow the communication between services
 networks:
-  app_network:
+  default:
     driver: bridge

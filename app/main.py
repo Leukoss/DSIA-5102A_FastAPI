@@ -7,6 +7,10 @@ app = FastAPI(
     version="0.0.1",
 )
 
+@app.on_event("startup")
+async def startup_event():
+    BaseSQL.metadata.create_all(bind=engine)
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}

@@ -1,6 +1,5 @@
-from .database import SessionLocal, engine
+from .database import SessionLocal
 
-# Dependency
 def get_db():
     try:
         db = SessionLocal()

@@ -1,17 +1,15 @@
-# Use a Python base image
 FROM python:3.11.8
 
-# Set the working directory inside the container
-WORKDIR .
+WORKDIR /app
 
-# Copy all the files
-COPY . .
+RUN pip install pipenv
 
-# Install pipenv and the dependencies
-RUN pip install pipenv && pipenv install --deploy --ignore-pipfile
+COPY Pipfile Pipfile.lock ./
 
-# Expose FastAPI on port 8000
+RUN pipenv install --system --deploy
+
+COPY . /app
+
 EXPOSE 8000
 
-# Command to run FastAPI with uvicorn
 CMD ["pipenv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
